@@ -1,4 +1,4 @@
-# CSCI 520, Assignment 1
+# Jello Cube
 
 **Author:** Pranav Rathod
 
