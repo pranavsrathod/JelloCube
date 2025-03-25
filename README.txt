@@ -1,121 +1,131 @@
-CSCI 520, Assignment 1
+# Jello Cube
 
-Pranav Rathod
+**Author:** Pranav Rathod
 
-================
+---
 
-Accomplishments:
-For this assignment, I successfully implemented a physically-based simulation of a Jello Cube using a mass-spring system. 
+## Accomplishments
+
+For this assignment, I successfully implemented a physically-based simulation of a Jello Cube using a mass-spring system.  
 The cube deforms, oscillates, and reacts realistically to forces based on Newton's laws of motion, Hooke's law, and damping forces.
 
-- Implemented computeAcceleration() in physics.cpp to correctly calculate acceleration based on forces from:
-  - Structural, shear, and bend springs
-  - External force fields (if applicable)
+### Core Features Implemented:
+
+- **Acceleration Computation (`computeAcceleration()` in `physics.cpp`)**:
+  - Structural, shear, and bend spring forces
+  - External force field (if present)
   - Collision response with the bounding box
 
-  The elasticity of the jello cube is modeled using a mass-spring system, where forces between connected points follow Hooke's Law:
+  The elasticity of the jello cube is modeled using a mass-spring system, where forces follow **Hooke's Law**:
 
-      F = -k * (x - x0)
+  ```
+  F = -k * (x - x0)
+  ```
 
-  where:
-  - F is the restoring force,
-  - k is the spring constant (elasticity),
-  - x is the current distance between two points,
-  - x0 is the rest length of the spring.
+  - `F`: restoring force  
+  - `k`: spring constant  
+  - `x`: current length  
+  - `x0`: rest length
 
-  Each mass point is connected to others via structural, shear, and bend springs, ensuring the cube maintains its shape while allowing realistic deformations. 
-  The simulation computes forces for all these spring types efficiently using structured loops.
+  Each mass point connects to others via structural, shear, and bend springs, allowing the cube to deform and recover naturally.  
 
-Damping Forces:
-Damping is applied to prevent excessive oscillations and ensure a physically stable simulation. It follows the damping force equation:
+- **Damping Forces**:  
+  To stabilize the system and reduce oscillations, damping forces are computed as:
 
-      F_d = -k_d * ((v_A - v_B) . L) / |L|
+  ```
+  F_d = -k_d * ((v_A - v_B) . L) / |L|
+  ```
 
-  where:
-  - k_d is the damping coefficient,
-  - v_A - v_B is the velocity difference between connected mass points,
-  - L is the displacement vector between them.
+  - `k_d`: damping coefficient  
+  - `v_A - v_B`: velocity difference  
+  - `L`: displacement vector between connected points
 
-  Damping is applied to all types of springs to realistically absorb energy from the system.
+- **Euler and RK4 Integration**:  
+  Both integration methods were implemented to advance simulation over time with tunable timestep values.
 
-- Integrated Euler and RK4 methods to solve the equations of motion and update the cube's state over time.
+- **Collision Detection & Penalty Response (Bounding Box)**:  
+  Ensures all control points stay within `[-2, 2]` by applying a spring force when out of bounds.
 
-- Implemented collision detection and response for interactions with the bounding box using the penalty method.
+  ```
+  F_c = k_c * (p_boundary - p)
+  ```
 
-  Collision detection ensures the cube remains within a bounding box [-2,2]^3. If a mass point moves outside this range, 
-  a penalty force is applied using an artificial spring, pushing it back into the box:
+- **External Force Field**:  
+  Trilinear interpolation was used to calculate external force values from a 3D grid defined in the `.w` file.
 
-      F_c = k_c * (p_boundary - p)
+  1. Grid Indexing – mapping position to force grid
+  2. Interpolation – blending 8 surrounding vectors
 
-  where:
-  - k_c is the collision elasticity constant,
-  - p_boundary is the closest valid position inside the box,
-  - p is the current position of the point.
+- **OpenGL Visualization**:
+  - Wireframe and shaded surface rendering modes
+  - Real-time camera controls
+  - Toggle visibility for structural, shear, and bend springs
 
-  A damping force is also applied during collisions to reduce sudden rebounds.
+---
 
-External Forces (Force Field):
-A spatially varying external force field influences the cube if defined in the .w world file. The force at each point is obtained using trilinear interpolation, ensuring smooth variations. 
-Forces are computed using:
+## Extra Credit Implemented
 
-1. Grid Indexing - The mass point’s position is mapped to the discrete force field grid.
-2. Interpolation - Surrounding grid points are weighted to obtain a continuous force.
+### Inclined Plane Collision
 
-- Ensured proper OpenGL rendering, allowing the user to:
-  - Toggle between wireframe and solid shading modes
-  - View the cube from different angles using mouse controls
-  - Toggle display of structural, shear, and bend springs for debugging
+- Supported via user-defined coefficients in the world file:  
+  ```
+  a * x + b * y + c * z + d = 0
+  ```
 
-================
+- **Rendering**:  
+  Drawn dynamically in `showInclinedPlane()` using 4 corners based on the plane equation.
 
-Extra Credit Implemented:
-- Implemented collision detection and response with an **inclined plane**.
+- **Collision Detection & Response**:
+  - Each control point is checked against the plane.
+  - If below, a penalty force pushes it above the surface.
+  - Includes damping opposite to velocity to absorb energy.
 
-Inclined Plane Collision:
-- The inclined plane is represented by the equation:  
-      
-      a * x + b * y + c * z + d = 0
+- Implemented in `applyCollisionForces()` inside `physics.cpp`.
 
-  where `a, b, c, d` are read from the world file if an inclined plane is present.
+The inclined plane adds more complexity and realism to the cube's motion and response.
 
-- Rendering:
-  - The inclined plane is **dynamically drawn** in `showInclinedPlane()` in `jello.cpp` using four computed boundary points.
+---
 
-- Collision Detection:
-  - Each point's position is checked against the plane equation.
-  - If the point is **below the plane** (distance < 0), a **penalty force** is applied to push it back.
+## Development Environment
 
-- Collision Response:
-  - A force is computed based on **penetration depth** and the plane’s normal.
-  - An additional **damping force** is applied opposite to the velocity to prevent excessive bouncing.
-  - This is implemented in `applyCollisionForces()` in `physics.cpp`.
+- **OS**: MacOS  
+- **Editor**: Visual Studio Code  
+- **Compiler**: Clang++ (C++17)  
+- **Build System**: Makefile  
+- **Libraries**: OpenGL, GLUT (Mac Frameworks)
 
-The addition of the inclined plane allows for more complex interactions and enhances the realism of the jello simulation.
+---
 
-================================================================================
+## Compilation Instructions
 
-Development Environment:
-- OS: MacOS
-- Editor: Visual Studio Code
-- Compiler: Clang++ (supports C++17)
-- Build System: Makefile (provided with the starter code)
-- Libraries Used: OpenGL, GLUT (Mac Frameworks)
+1. **Build the project**  
+   ```bash
+   make
+   ```
 
-================
+2. **Run the simulation with a world file**  
+   ```bash
+   ./jello world/jello.w
+   ```
 
-Compilation Instructions:
-This project was compiled using the provided Makefile. To build and run:
+3. **Create a world file**  
+   ```bash
+   ./createWorld
+   ```
 
-1. Compile the project: make
-2. Run the simulation with a world file: ./jello world/jello.w
-3. To create a world file: ./createWorld
-4. To clean compiled files: make clean
+4. **Clean build artifacts**  
+   ```bash
+   make clean
+   ```
 
-Note: The Makefile provided automatically detects MacOS and links the appropriate OpenGL/GLUT frameworks.
+> _Note: The Makefile auto-detects MacOS and links the correct OpenGL/GLUT frameworks._
 
-================
+---
 
-Notes:
-- The project has been thoroughly tested using the provided world files.
-- The simulation runs efficiently at interactive frame rates (>15fps at 640x480 resolution).
-- The submission includes the Mac executable. Since grading is done on Windows, please use the provided source code and recompile on a Windows system if needed.
+## Notes
+
+- The simulation was tested using multiple world files including custom-generated ones.
+- Performance is interactive with frame rates > 15fps at 640x480.
+- A Mac executable is included, but the grader may recompile on Windows as needed.
+
+---
